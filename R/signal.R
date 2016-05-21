@@ -54,6 +54,11 @@ flow_signal_check <- function(x, FlowSignalData, ChannelRemove = NULL,
 
   fs_cellBinID <- FlowSignalData$cellBinID
   fs_res <- FlowSignalData$exprsBin
+  ### log transformation
+  fs_res[which(fs_res <= 1 & fs_res >= -1)] <- 0
+  fs_res[which(fs_res > 1)] <- log(fs_res[which(fs_res > 1)])
+  fs_res[which(fs_res < -1)] <- -log(abs(fs_res[which(fs_res < -1)]))
+  
   teCh <- grep("Time|time|TIME|Event|event|EVENT", colnames(fs_res), value = TRUE)
   parms <- setdiff(colnames(fs_res), teCh)
 
@@ -93,6 +98,7 @@ flow_signal_check <- function(x, FlowSignalData, ChannelRemove = NULL,
              penalty =  "Manual" , test.stat = "Normal",
              method = "BinSeg", param.estimates = FALSE))
   }else{
+
   cpt_res <- suppressWarnings(cpt.meanvar(t(fs_res[, parms]),
       pen.value = pen_valueFS, Q = maxSegmentFS,
       penalty =  "Manual" , test.stat = "Normal",
@@ -158,7 +164,7 @@ flow_signal_check <- function(x, FlowSignalData, ChannelRemove = NULL,
   sub_exprs <- sub_exprs[goodCellIDs, ]  ## check if the Id Correspond!
   newx <- flowFrame(exprs = sub_exprs, parameters = params, description = keyval)
 
-  return(list(FSnewFCS = newx, exprsBin = fs_res, Perc_bad_cells = data.frame(badPerc_tot,badPerc_cp, badPerc_out),
+  return(list(FSnewFCS = newx, exprsBin = FlowSignalData$exprsBin, Perc_bad_cells = data.frame(badPerc_tot,badPerc_cp, badPerc_out),
         goodCellIDs = goodCellIDs, tab_cpt = tab_cpt, ch_no_cpt =ch_no_cpt,
         segm = max_seg, FS_out = FS_out, outlier_remove = outlier_remove))
 }

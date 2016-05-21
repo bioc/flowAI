@@ -1,3 +1,9 @@
+## remove last slash if present
+strip.sep <- function(name) {
+    ifelse(substr(name,nchar(name),nchar(name))==.Platform$file,
+        substr(name,1,nchar(name)-1),name)
+}
+
 # Guess which channel captures time in a exprs, flowFrame or flowset
 findTimeChannel <- function(xx) {
     time <- grep("^Time$", colnames(xx), value = TRUE, ignore.case = TRUE)[1]
@@ -49,17 +55,17 @@ addQC <- function(QCvector, remove_from, sub_exprs, params, keyval){
     flowCorePnRmax <- paste0("flowCore_$P", NN, "Rmax")
     flowCorePnRmin <- paste0("flowCore_$P", NN, "Rmin")
     o <- params@data
-    o[length(o[,1]) + 1,] <- c(paste0("remove_from_", remove_from), "QC", as.numeric(keyval$`$P1R`), 0, 20000)
+    o[length(o[,1]) + 1,] <- c(paste0("remove_from_", remove_from), "QC", as.numeric(keyval$`$P1R`), 0, max(QCvector))
     rownames(o)[length(o[,1])] <- paste("$P", NN, sep = "")
     
     outFCS <- new("flowFrame", exprs=sub_exprs, parameters=new("AnnotatedDataFrame",o), description=keyval)
-    description(outFCS)[pnr] <- max(20000, description(outFCS)$`$P1R`)
+    description(outFCS)[pnr] <- max(max(QCvector), description(outFCS)$`$P1R`)
     description(outFCS)[pnb] <- description(outFCS)$`$P1B`
     description(outFCS)[pne] <- "0,0"
     description(outFCS)[pnn] <- paste0("remove_from_", remove_from)
     description(outFCS)[pns] <- "QC"
     description(outFCS)$`$PAR` <- NN
-    description(outFCS)[flowCorePnRmax] <- 20000
+    description(outFCS)[flowCorePnRmax] <- max(QCvector)
     description(outFCS)[flowCorePnRmin] <- 0
     outFCS
 }  

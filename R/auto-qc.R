@@ -13,6 +13,10 @@
 #' \code{"FR_FS", "FR_FM", "FS_FM", "FR", "FS", "FM"}, to remove the anomalies only 
 #' on a subset of the steps where \emph{FR} stands for the flow rate, \emph{FS} stands
 #' for signal acquisition and \emph{FM} stands for dynamic range.
+#' @param output Set it to 1 to return a list with the IDs of low quality cells. 
+#' Set it to 2 to return a flowFrame or a flowSet with an additional 
+#' parameter where only the low quality events have a value higher than 10,000. 
+#' Default is \code{1}.
 #' @param timeCh Character string corresponding to the name of the Time Channel
 #' in the set of FCS files. By default is \code{NULL} and the name is retrieved
 #' automatically.
@@ -62,10 +66,9 @@
 #' analyzed. The default is \code{"_QCmini"}. If you do not want to generate 
 #' the mini report use \code{FALSE}.
 #' @param fcs_QC Suffix to be added for the filename of the new FCS 
-#' containing a new channel where the low quality events have a random value 
-#' between 10,000 to 20,000 (as for flowClean). The default is 
-#' \code{"_QC"}. If you do not want to generate the high quality FCS file 
-#' use \code{FALSE}.
+#' containing a new channel where only the low quality events have a value 
+#' higher than 10,000. The default is \code{"_QC"}. 
+#' If you do not want to generate the high quality FCS file use \code{FALSE}.
 #' @param fcs_highQ Suffix to be added for the filename of the new FCS 
 #' containing only the events that passed the quality control. The default 
 #' is \code{FALSE} and hence the high quality FCS file is not generated.
@@ -74,14 +77,19 @@
 #' is \code{FALSE} and hence the low quality FCS file is not generated.
 #' @param folder_results Character string used to name the directory that 
 #' contains the results. The default is \code{"resultsQC"}. If you intend 
-#' to return the results in the main directory use \code{FALSE}.
+#' to return the results in the working directory use \code{FALSE}.
 #' @return A complete quality control is performed on flow cytometry data in FCS
-#' format. By default the analysis returns a directory named \code{resultsQC}
-#' containing:
-#' 1. a set of new FCS files with a new parameter to gate out the low quality events
-#' 2. a set of HTML reports, one for each FCS file, that include graphs and table 
-#' indicating where the anomalies were detected,
-#' 3. a single TXT file reporting the percentage of events removed in each FCS file.
+#' format. By default the analysis returns:
+#' 
+#' 1. a list object containing the ID of the low quality events of each FCS file
+#' 
+#' and a directory named \var{resultsQC} containing:
+#' 
+#' 2. a set of new FCS files with a new parameter to gate out the low quality events,
+#' 
+#' 3. a set of HTML reports, one for each FCS file, that include graphs and table indicating where the anomalies were detected, 
+#' 
+#' 4. a single TXT file reporting the percentage of events removed in each FCS file.
 #' 
 #' @author Gianni Monaco, Chen Hao 
 #' @examples
@@ -100,7 +108,7 @@
 #' @import knitr
 #' @import reshape2
 #' @export
-flow_auto_qc <- function(fcsfiles, remove_from = "all",
+flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
      timeCh = NULL, second_fractionFR = 0.1, alphaFR = 0.01, decompFR = TRUE, 
      ChRemoveFS = c("FSC", "SSC"), outlierFS = FALSE, pen_valueFS = 200, 
      max_cptFS = 3, ChFM = NULL, sideFM = "both", neg_valuesFM = 1, 
@@ -146,22 +154,24 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all",
   }
   
   if(folder_results != FALSE){
-      dir.create(folder_results, showWarnings = FALSE)
-  }
+      folder_results <- strip.sep(folder_results)
+      dir_info <- file.info(folder_results)
+      if (is.na(dir_info$isdir)) {
+          dir.create(folder_results)
+      }
+  }else{ folder_results <- getwd() }
+     
+  out <- list()
   
   for (i in 1:length(set)) {
 
-    filename_ext <- description(set[[i]])$FILENAME
+    filename_ext <- basename(description(set[[i]])$FILENAME)
     filename <- sub("^([^.]*).*", "\\1", filename_ext)
     if (html_report != FALSE) {
-        reportfile <- paste0(getwd(), .Platform$file.sep, 
-            ifelse(folder_results != FALSE, paste0(folder_results, .Platform$file.sep), ""),
-            filename, html_report, ".html")
+        reportfile <- file.path(folder_results, paste0(filename, html_report, ".html"))
     }
     if (mini_report != FALSE) {
-        minireport <- paste0(getwd(), .Platform$file.sep, 
-            ifelse(folder_results != FALSE, paste0(folder_results, .Platform$file.sep), ""),
-            mini_report, ".txt")
+        minireport <- file.path(folder_results, paste0(mini_report, ".txt"))
         if(!file.exists(minireport)){
             write.table(t(c("Name file", "n. of events", "% anomalies", "analysis from",
                 "% anomalies flow Rate",  "% anomalies Signal",  "% anomalies Margins")),
@@ -169,19 +179,13 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all",
         }
     }
     if (fcs_QC != FALSE) {
-        QC.fcs.file <- paste0(getwd(), .Platform$file.sep,
-            ifelse(folder_results != FALSE, paste0(folder_results, .Platform$file.sep), ""),
-            filename, fcs_QC, ".fcs")
+        QC.fcs.file <- file.path(folder_results, paste0(filename, fcs_QC, ".fcs"))
     }
     if (fcs_highQ != FALSE) {
-        good.fcs.file <- paste0(getwd(), .Platform$file.sep,
-            ifelse(folder_results != FALSE, paste0(folder_results, .Platform$file.sep), ""),
-            filename, fcs_highQ, ".fcs")
+        good.fcs.file <- file.path(folder_results, paste0(filename, fcs_highQ, ".fcs"))
     }
     if (fcs_lowQ != FALSE) {
-        bad.fcs.file <- paste0(getwd(), .Platform$file.sep,
-            ifelse(folder_results != FALSE, paste0(folder_results, .Platform$file.sep), ""),
-            filename, fcs_lowQ, ".fcs")
+        bad.fcs.file <- file.path(folder_results, paste0(filename, fcs_lowQ, ".fcs"))
     }
 
     # select different color for the analyzed FCS in the set plot
@@ -257,26 +261,28 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all",
 
       badCellIDs <- setdiff(origin_cellIDs, goodCellIDs)
       totalBadPerc <- round(length(badCellIDs)/length(origin_cellIDs), 4)
-      if (fcs_QC != FALSE || fcs_highQ != FALSE || fcs_lowQ != FALSE) {
+      if (fcs_QC != FALSE || fcs_highQ != FALSE || fcs_lowQ != FALSE  || output == 2 ) {
         sub_exprs <- exprs(ordFCS)
         params <- parameters(ordFCS)
         keyval <- keyword(ordFCS)
       }
-      if (fcs_QC != FALSE ){
+      if (fcs_QC != FALSE || output == 2 ){
           QCvector <- FlowSignalData$cellBinID[,"binID"]
-          QCvector[badCellIDs] <- runif(length(badCellIDs), min=10000, max=20000) 
+          while(!all(QCvector < 10000)){  # all the values pushed below 10000
+                highV <- which(QCvector > 9999)
+                QCvector[highV] <- QCvector[highV] - 10000
+              }
+          QCvector[badCellIDs] <- FlowSignalData$cellBinID[badCellIDs,"binID"] + 10000
           newFCS <- addQC(QCvector, remove_from, sub_exprs, params, keyval)
-          suppressWarnings(write.FCS(newFCS, QC.fcs.file))  
+          if (fcs_QC != FALSE){ suppressWarnings(write.FCS(newFCS, QC.fcs.file)) }
       }
       if (length(badCellIDs) > 0 & fcs_highQ != FALSE) {
-      good_sub_exprs <- sub_exprs[goodCellIDs, ]
-      goodfcs <- flowFrame(exprs = good_sub_exprs,
+      goodfcs <- flowFrame(exprs = sub_exprs[goodCellIDs, ],
         parameters = params, description = keyval)
     suppressWarnings(write.FCS(goodfcs, good.fcs.file))
     }
     if (length(badCellIDs) > 0 & fcs_lowQ != FALSE) {
-      bad_sub_exprs <- sub_exprs[badCellIDs, ]
-      badfcs <- flowFrame(exprs = bad_sub_exprs,
+      badfcs <- flowFrame(exprs = sub_exprs[badCellIDs, ],
         parameters = params,description = keyval)
       suppressWarnings(write.FCS(badfcs, bad.fcs.file))
     }
@@ -296,5 +302,18 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all",
        template_path <- system.file("rmd","autoQC_report.Rmd", package='flowAI')
        knit2html(template_path, output = reportfile, force_v1 = TRUE)
      }
+      if(output == 1){
+        out[[i]] <- badCellIDs
+        names(out)[i] <- filename
+      }else if( output == 2 ){
+        out <- c(out, newFCS)
+      }else{
+          warning("the output argument should be set to either 1 or 2")
+      }
+  }
+  if( output == 1 ){ return(out) } 
+  if( output == 2 ){ 
+      if(length(out) == 1){ return( out[[1]] )
+      }else{    return(as(out, "flowSet"))  }
   }
 }
