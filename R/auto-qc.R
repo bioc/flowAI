@@ -13,10 +13,10 @@
 #' \code{"FR_FS", "FR_FM", "FS_FM", "FR", "FS", "FM"}, to remove the anomalies only 
 #' on a subset of the steps where \emph{FR} stands for the flow rate, \emph{FS} stands
 #' for signal acquisition and \emph{FM} stands for dynamic range.
-#' @param output Set it to 1 to return a list with the IDs of low quality cells. 
-#' Set it to 2 to return a flowFrame or a flowSet with an additional 
+#' @param output Set it to 1 to return a flowFrame or a flowSet with an additional 
 #' parameter where only the low quality events have a value higher than 10,000. 
-#' Default is \code{1}.
+#' Set it to 2 to return a list with the IDs of low quality cells. Set it to any other
+#' value if no R object has to be returned. Default is \code{1}.
 #' @param timeCh Character string corresponding to the name of the Time Channel
 #' in the set of FCS files. By default is \code{NULL} and the name is retrieved
 #' automatically.
@@ -98,7 +98,7 @@
 #' data(Bcells)
 #'
 #' ## quality control on a flowFrame object
-#' flow_auto_qc(Bcells[[1]], html_report = FALSE, mini_report = FALSE, fcs_QC = FALSE, folder_results = FALSE)
+#' resQC <- flow_auto_qc(Bcells[[1]], html_report = FALSE, mini_report = FALSE, fcs_QC = FALSE, folder_results = FALSE)
 #'
 #' @import flowCore
 #' @import ggplot2
@@ -261,12 +261,12 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
 
       badCellIDs <- setdiff(origin_cellIDs, goodCellIDs)
       totalBadPerc <- round(length(badCellIDs)/length(origin_cellIDs), 4)
-      if (fcs_QC != FALSE || fcs_highQ != FALSE || fcs_lowQ != FALSE  || output == 2 ) {
+      if (fcs_QC != FALSE || fcs_highQ != FALSE || fcs_lowQ != FALSE  || output == 1 ) {
         sub_exprs <- exprs(ordFCS)
         params <- parameters(ordFCS)
         keyval <- keyword(ordFCS)
       }
-      if (fcs_QC != FALSE || output == 2 ){
+      if (fcs_QC != FALSE || output == 1 ){
           QCvector <- FlowSignalData$cellBinID[,"binID"]
           while(!all(QCvector < 10000)){  # all the values pushed below 10000
                 highV <- which(QCvector > 9999)
@@ -303,17 +303,15 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
        knit2html(template_path, output = reportfile, force_v1 = TRUE)
      }
       if(output == 1){
-        out[[i]] <- badCellIDs
-        names(out)[i] <- filename
+          out <- c(out, newFCS)
       }else if( output == 2 ){
-        out <- c(out, newFCS)
-      }else{
-          warning("the output argument should be set to either 1 or 2")
+          out[[i]] <- badCellIDs
+          names(out)[i] <- filename
       }
   }
-  if( output == 1 ){ return(out) } 
-  if( output == 2 ){ 
+  if( output == 1 ){ 
       if(length(out) == 1){ return( out[[1]] )
       }else{    return(as(out, "flowSet"))  }
   }
+  if( output == 2 ){ return(out) } 
 }

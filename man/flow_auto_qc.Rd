@@ -22,10 +22,10 @@ anomalies from all the three steps. Alternatively, you can use:
 on a subset of the steps where \emph{FR} stands for the flow rate, \emph{FS} stands
 for signal acquisition and \emph{FM} stands for dynamic range.}
 
-\item{output}{Set it to 1 to return a list with the IDs of low quality cells. 
-Set it to 2 to return a flowFrame or a flowSet with an additional 
+\item{output}{Set it to 1 to return a flowFrame or a flowSet with an additional 
 parameter where only the low quality events have a value higher than 10,000. 
-Default is \code{1}.}
+Set it to 2 to return a list with the IDs of low quality cells. Set it to any other
+value if no R object has to be returned. Default is \code{1}.}
 
 \item{timeCh}{Character string corresponding to the name of the Time Channel
 in the set of FCS files. By default is \code{NULL} and the name is retrieved
@@ -131,7 +131,7 @@ anomalies by checking three properties of flow cytometry: 1) flow rate,
 data(Bcells)
 
 ## quality control on a flowFrame object
-flow_auto_qc(Bcells[[1]], html_report = FALSE, mini_report = FALSE, fcs_QC = FALSE, folder_results = FALSE)
+resQC <- flow_auto_qc(Bcells[[1]], html_report = FALSE, mini_report = FALSE, fcs_QC = FALSE, folder_results = FALSE)
 
 }
 \author{

@@ -58,9 +58,9 @@ in the FlowAI packages.
 The flowAI package depends on the flowCore package for the handling of the FCS files in the R environment. The flowCore package provides two main classes, `flowFrame` and `flowSet`. The `Bcells` object is an instance of the `flowSet` class and contains a set of three FCS files that taken singuarly are instances of the `flowFrame` object.  The `flow_auto_qc` function can be called on either one of the flowCore objects, `flowSet` and `flowFrame`, and on a character vector of the fcs files:
 
 ```{r, eval=FALSE}
-flow_auto_qc(Bcells)  # using a flowSet
-flow_auto_qc(Bcells[[1]]) # using a flowFrame
-flow_auto_qc(fcsfiles) # using a character vector
+resQC <- flow_auto_qc(Bcells)  # using a flowSet
+resQC <- flow_auto_qc(Bcells[[1]]) # using a flowFrame
+resQC <- flow_auto_qc(fcsfiles) # using a character vector
 ```
 
 When a character vector is used to call the `flow_auto_qc` function, a `flowSet` object is automatically generated since the creation of the histogram for the cell number comparison depends on it. 
@@ -78,9 +78,10 @@ batches <- cut(cums, groups)
 Then you can run your analysis on the batches using a for-loop:
 ```{r, eval=FALSE}
 for(i in 1:groups){
-    flow_auto_qc(fcsfiles[which(batches == levels(batches)[i])]) 
+    flow_auto_qc(fcsfiles[which(batches == levels(batches)[i])], output = 0) 
 }
 ```
+When setting the *output* argument to 0 (or any other value apart 1 and 2), no R objects are returned.
 
 #### Interactive method
 The interactive method is implemented as a Shiny app and is executed through 
