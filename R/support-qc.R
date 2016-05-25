@@ -44,6 +44,7 @@ addQC <- function(QCvector, remove_from, sub_exprs, params, keyval){
     rs <- attr(sub_exprs, "ranges")
     rs <- c(rs, rs[1])
     sub_exprs <- cbind(sub_exprs, QCvector)
+    colnames(sub_exprs)[dim(sub_exprs)[2]] <-  c(paste0("remove_from_", remove_from))
     attr(sub_exprs, "ranges") <- rs
     NN <- as.numeric(keyval["$PAR"]) + 1
     names(dimnames(sub_exprs)[[2]]) <- sprintf("$P%sN", 1:NN)
