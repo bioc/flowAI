@@ -15,7 +15,8 @@
 #' for signal acquisition and \emph{FM} stands for dynamic range.
 #' @param output Set it to 1 to return a flowFrame or a flowSet with an additional 
 #' parameter where only the low quality events have a value higher than 10,000. 
-#' Set it to 2 to return a list with the IDs of low quality cells. Set it to any other
+#' Set it to 2 to return a flowFrame or a flowSet with high quality events only. 
+#' Set it to 3 to return  a list with the IDs of low quality cells. Set it to any other
 #' value if no R object has to be returned. Default is \code{1}.
 #' @param timeCh Character string corresponding to the name of the Time Channel
 #' in the set of FCS files. By default is \code{NULL} and the name is retrieved
@@ -276,10 +277,10 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
           newFCS <- addQC(QCvector, remove_from, sub_exprs, params, keyval)
           if (fcs_QC != FALSE){ suppressWarnings(write.FCS(newFCS, QC.fcs.file)) }
       }
-      if (length(badCellIDs) > 0 & fcs_highQ != FALSE) {
+      if (fcs_highQ != FALSE || output == 2) {
       goodfcs <- flowFrame(exprs = sub_exprs[goodCellIDs, ],
         parameters = params, description = keyval)
-    suppressWarnings(write.FCS(goodfcs, good.fcs.file))
+      if (fcs_highQ != FALSE) {suppressWarnings(write.FCS(goodfcs, good.fcs.file)) }
     }
     if (length(badCellIDs) > 0 & fcs_lowQ != FALSE) {
       badfcs <- flowFrame(exprs = sub_exprs[badCellIDs, ],
@@ -304,14 +305,16 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
      }
       if(output == 1){
           out <- c(out, newFCS)
-      }else if( output == 2 ){
+      }else if ( output == 2){
+          out <- c(out, goodfcs)
+      }else if( output == 3 ){
           out[[i]] <- badCellIDs
           names(out)[i] <- filename
       }
   }
-  if( output == 1 ){ 
+  if( output == 1 || output == 2){ 
       if(length(out) == 1){ return( out[[1]] )
       }else{    return(as(out, "flowSet"))  }
   }
-  if( output == 2 ){ return(out) } 
+  if( output == 3 ){ return(out) } 
 }
