@@ -62,8 +62,8 @@
 #' @param html_report Suffix to be added to the FCS filename to name the HTML 
 #' report of the quality control. The default is \code{"_QC"}. If you do not 
 #' want to generate a report use \code{FALSE}.
-#' @param mini_report Suffix to be added for the filename of the TXT 
-#' file containing the percentage of anomalies detected in each FCS file 
+#' @param mini_report Name for the TXT file containing the percentage of 
+#' anomalies detected in the set of FCS files 
 #' analyzed. The default is \code{"_QCmini"}. If you do not want to generate 
 #' the mini report use \code{FALSE}.
 #' @param fcs_QC Suffix to be added for the filename of the new FCS 
