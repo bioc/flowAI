@@ -92,9 +92,10 @@ Once you open the Shiny app on your web browser, you can upload the FCS file fro
 
 ## Quality control
 The full pipeline of our quality control procedure includes the removal of events having
-anomalous values when looking at three aspect of a flow cytometry analysis:  
-1. flow rate,  
-2. signal acquisition 
+anomalous values when looking at three aspect of a flow cytometry analysis: 
+ 
+1. flow rate  
+2. signal acquisition  
 3. dynamic range
 
 However, it is possible to perform partial quality control on only one or two of the above mentioned properties. For the automatic method, this can be set with the argument `remove_from`.

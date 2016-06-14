@@ -188,7 +188,7 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
     if (fcs_lowQ != FALSE) {
         bad.fcs.file <- file.path(folder_results, paste0(filename, fcs_lowQ, ".fcs"))
     }
-
+    cat(paste0("Quality control for the file", filename, "\n"))
     # select different color for the analyzed FCS in the set plot
     area <- area.color
     area[i] <- "blue"
@@ -301,7 +301,9 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
                ordFCS@parameters$name, value = TRUE))
        }
        template_path <- system.file("rmd","autoQC_report.Rmd", package='flowAI')
-       knit2html(template_path, output = reportfile, force_v1 = TRUE)
+       knit2html(template_path, output = reportfile, force_v1 = TRUE, quiet = TRUE)
+    #   file.remove("autoQC_report.md")
+    #   unlink("figure", recursive = TRUE)
      }
       if(output == 1){
           out <- c(out, newFCS)
