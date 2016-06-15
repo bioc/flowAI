@@ -7,7 +7,7 @@ citEntry(entry  = "article",
                  person(first="Hao", last="Chen"),
                  person(first="Michael", last="Poidinger"),
                  person(first="Jinmiao", last="Chen"),
-                 person(first="João Pedro", last="de Magalhães"),
+                 person(first="Joao Pedro", last="de Magalhaes"),
                  person(first="Anis", last="Larbi")
 			),
          journal = "Bioinformatics",
