@@ -213,7 +213,7 @@ flow_signal_plot <- function(FlowSignalQC) {
       scale_x_continuous(breaks= pretty_breaks(n =10)) +
       scale_y_continuous(breaks= pretty_breaks(n =3)) +
       geom_rect(aes(xmin = segm[1], xmax = segm[2], ymin = -Inf,
-      ymax = Inf), fill = "orange", linetype = 0, alpha = 0.005)  # modify alpha to regulate the transparence
+      ymax = Inf), fill = "yellow", linetype = 0, alpha = 0.005)  # modify alpha to regulate the transparency
   # Add anoms to the plot as circles.
   if(outlier_remove){
     longdata_out <- melt(data[FS_out,], id.vars = "binID",
