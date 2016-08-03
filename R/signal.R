@@ -206,14 +206,14 @@ flow_signal_plot <- function(FlowSignalQC) {
   FS_graph <- ggplot(longdata, aes(x = binID, y = value, col = marker),
       environment = environment()) + labs(x = "Bin ID",
       y = "Median Intensity value") +
-      geom_line() + facet_grid(marker ~ ., scales = "free") + theme_bw() +
+      facet_grid(marker ~ ., scales = "free") + theme_bw() +
       theme(strip.text.y = element_text(angle = 0,
       hjust = 1), axis.text.y = element_text(size = 6),
       legend.position = "none") +
       scale_x_continuous(breaks= pretty_breaks(n =10)) +
       scale_y_continuous(breaks= pretty_breaks(n =3)) +
       geom_rect(aes(xmin = segm[1], xmax = segm[2], ymin = -Inf,
-      ymax = Inf), fill = "yellow", linetype = 0, alpha = 0.005)  # modify alpha to regulate the transparency
+      ymax = Inf), fill = "khaki1", linetype = 0) + geom_line()
   # Add anoms to the plot as circles.
   if(outlier_remove){
     longdata_out <- melt(data[FS_out,], id.vars = "binID",
