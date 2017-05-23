@@ -114,7 +114,7 @@ anomaly_detection = function(x, max_anoms=0.49, direction='both', alpha=0.01, us
         # protect against constant time series
         data_sigma <- func_sigma(data_det[[3L]])   
         # the standard deviation has to be calculated from the orginal 
-        # distribution because otherwise it would be affected to match 
+        # distribution because otherwise it would be affected too much 
         # by the cycle component
         if(data_sigma == 0) 
             break
