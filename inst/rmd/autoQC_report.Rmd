@@ -6,7 +6,7 @@ output: html_document
 
 
 ```{r setup, include=FALSE}
-opts_chunk$set(fig.align='center', dev = c('png', 'pdf'), out.width='750px', dpi=200)  
+opts_chunk$set(fig.align='center', out.width='750px', dpi=200)  # , dev = c('png', 'pdf')
 opts_knit$set(progress=FALSE)
 ```
 
