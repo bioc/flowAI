@@ -33,9 +33,6 @@ flow_signal_bin <- function(x, channels = NULL, binSize = 500,
   uniSeconds <- unique(seconds)  # num of unique time tick
   nrBins <- floor(lenSec/binSize)  # num of bins
 
-  if (length(uniSeconds) < nrBins || lenSec < binSize)
-    stop("Improper bin size")
-
   cf <- c(rep(1:nrBins, each = binSize), rep(nrBins + 1, lenSec - nrBins * binSize))  # id bins
   stopifnot(length(cf) == lenSec)
   tmpx <- split(seconds, cf)

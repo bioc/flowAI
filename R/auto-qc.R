@@ -128,13 +128,12 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
   }else if( class(fcsfiles) == "flowFrame" ){
     set <- as(fcsfiles,"flowSet")
   }else{
-   stop("Use as first argument a flowSet or a character vector with the name of the fcs files to analyse")
+   stop("As first argument, use a flowSet or a character vector with the path of the FCS files")
   }
 
   N_cell_set <- flow_set_qc(set)
   area.color <- rep("red", length(set))
 
-  FSbinSize <- min(max(1, floor(median(fsApply(set, nrow)/100))), 500)
   if (missing(timeCh) || is.null(timeCh)) {
     timeCh <- findTimeChannel(set[[1]])
   }
@@ -167,9 +166,9 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
   out <- list()
   
   for (i in 1:length(set)) {
-
     filename_ext <- basename(description(set[[i]])$FILENAME)
     filename <- sub("^([^.]*).*", "\\1", filename_ext)
+
     if (html_report != FALSE) {
         reportfile <- paste0(folder_results,filename, html_report, ".html")
     }
@@ -198,7 +197,7 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
     # check the time channel of the file
     if (!is.null(timeCh)) {
         if (length(unique(exprs(set[[i]])[, timeCh])) == 1){
-            cat("The time channel contain a single value. It cannot be used to recreate the flow rate. \n")
+            cat("The time channel contains a single value. It cannot be used to recreate the flow rate. \n")
             warning(paste0("The time channel in ", filename_ext, " contains a single value. It cannot be used to recreate the flow rate. \n"), call. =FALSE)
             TimeChCheck <- "single_value"
         }else{
@@ -208,6 +207,8 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
         TimeChCheck <- "NoTime"
     }
     
+    # get the size of the bins
+    FSbinSize <- min(max(1, ceiling(nrow(set[[1]])/100)), 500)   
     # order events in the FCS file if a proper Time channel is present
     if (is.null(TimeChCheck)) {
       ordFCS <- ord_fcs_time(set[[i]], timeCh)
@@ -311,7 +312,7 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
   }
   if( output == 1 || output == 2){ 
       if(length(out) == 1){ return( out[[1]] )
-      }else{    return(as(out, "flowSet"))  }
+      }else{  return(as(out, "flowSet"))  }
   }
   if( output == 3 ){ return(out) } 
 }
