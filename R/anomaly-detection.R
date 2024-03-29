@@ -65,7 +65,7 @@ anomaly_detection = function(x, max_anoms=0.49, direction='both', alpha=0.01, us
     if(!direction %in% c('pos', 'neg', 'both')){
         stop("direction options are: pos | neg | both.")
     }
-    if(!(0.01 <= alpha || alpha <= 0.1)){
+    if(!(0.01 <= alpha & alpha <= 0.1)){
         print("Warning: alpha is the statistical significance level, and is usually between 0.01 and 0.1")
     }
 
