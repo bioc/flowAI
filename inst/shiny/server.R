@@ -13,7 +13,7 @@ shinyServer(function(input, output, session) {
                  if (is.null(fcsFiles))
                      return(NULL)
                  set <- read.FCS(fcsFiles$datapath)
-                 set@description$FILENAME <- fcsFiles$name})
+                 keyword(set)$FILENAME <- fcsFiles$name})
         return(set)
     })
 
@@ -30,9 +30,9 @@ shinyServer(function(input, output, session) {
     timeStep <- reactive({
         if(is.null(set()))
             return(NULL)
-        word <- which(grepl("TIMESTEP", names(set()@description),
-                            ignore.case = TRUE))
-        timestep <- as.numeric(set()@description[[word[1]]])
+        word <- grep("TIMESTEP", names(keyword(set())),
+                            ignore.case = TRUE, value = TRUE)
+        timestep <- as.numeric(keyword(set())[[word[1]]])
         if( !length(timestep) ){
             warning("The timestep keyword was not found in the FCS file and it was set to 0.01. Graphs labels indicating time might not be correct", call. =FALSE)
             timestep <- 0.01
@@ -281,7 +281,7 @@ shinyServer(function(input, output, session) {
     })
 
     file_base <- reactive({
-      file_ext <- description(ordFCS())$FILENAME
+      file_ext <- keyword(ordFCS())$FILENAME
       file_base <- sub("^([^.]*).*", "\\1", file_ext)
       return(file_base)
     })
