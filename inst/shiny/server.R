@@ -180,6 +180,7 @@ shinyServer(function(input, output, session) {
         if(is.null(set()) || is.null(cellCheck()))
             return(NULL)
         flowSignalData <- cellCheck()[[2]]
+        req(input$signalBinSlider[1], input$signalBinSlider[2])
         fsp <- flow_signal_plot(flowSignalData, input$signalBinSlider[1], input$signalBinSlider[2])
         print(fsp)
     })
