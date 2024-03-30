@@ -32,7 +32,7 @@ shinyUI(fluidPage(
                hr(),
                div(style = "margin-top: 30px; width: 200px; ", HTML("Developed by")),
                div(style = "margin-top: 10px; ",
-                   HTML("<img style='width: 150px;' src='http://archild.sign.a-star.edu.sg/images/logo.png'>"))
+                   HTML("<img style='width: 150px;' src='https://www.a-star.edu.sg/images/librariesprovider26/default-album/astar_sign_horizontal-logo_rgb.png'>"))
         ),
         column(9,
                tabsetPanel(type = "pills",

@@ -41,6 +41,9 @@ anomaly_detection = function(x, max_anoms=0.49, direction='both', alpha=0.01, us
   # x <- x[idNOzero]
     
     # Check for supported inputs types
+    if(is.null(period)){
+        stop("Period must be set to the number of data points in a single period")
+    }
     if(is.vector(x) && is.numeric(x)) {
         x <- ts(x, frequency = period)
     } else if(is.ts(x)) {
@@ -64,9 +67,6 @@ anomaly_detection = function(x, max_anoms=0.49, direction='both', alpha=0.01, us
     }
     if(!(0.01 <= alpha & alpha <= 0.1)){
         print("Warning: alpha is the statistical significance level, and is usually between 0.01 and 0.1")
-    }
-    if(is.null(period)){
-        stop("Period must be set to the number of data points in a single period")
     }
 
     ############## -- Main analysis: Perform C-H-ESD -- #################
@@ -112,23 +112,16 @@ anomaly_detection = function(x, max_anoms=0.49, direction='both', alpha=0.01, us
     for (i in 1L:max_outliers){
         if(verbose) message(paste(i,"/", max_outliers,"completed"))
         
-        if(one_tail){
-            if(upper_tail){
-                ares <- data_det[[2L]] - func_ma(data_det[[2L]])
-            } else {
-                ares <- func_ma(data_det[[2L]]) - data_det[[2L]]
-            }
-        } else {
-            ares = abs(data_det[[2L]] - func_ma(data_det[[2L]]))
-        }
-        
-        
-        data_sigma <- func_sigma(ares)   
+        # Compute statistics
+        ares <- data_det$values - func_ma(data_det$values)
+        if(one_tail && !upper_tail) ares <- -ares  # to detect minimum
+        data_sigma <- func_sigma(ares)  # do not use absolute values when both
         # tbefore it was calculated on the trend or original values. I changed it afterwards
         if(data_sigma == 0) 
             break
         
         ares <- ares/data_sigma
+        if(!one_tail) ares <- abs(ares)
         R <- max(ares)
         
         temp_max_idx <- which(ares == R)[1L]
