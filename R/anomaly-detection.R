@@ -33,7 +33,7 @@
 # @export
 
 
-anomaly_detection = function(x, max_anoms=0.49, alpha=0.01, decomp = "cffilter", period=2, verbose = FALSE, ModeDevFR = NULL){
+anomaly_detection = function(x, max_anoms=0.49, alpha=0.01, decomp = "cffilter", period=2, verbose = FALSE, ModeDeviation = NULL){
   
   # Check for supported inputs types
   if(is.null(period)){
@@ -66,6 +66,7 @@ anomaly_detection = function(x, max_anoms=0.49, alpha=0.01, decomp = "cffilter",
   # -- Step 1: Decompose data. This will return two more components: trend and cycle   
   if(decomp == "cffilter"){
     # Christiano-Fitzgerald filter
+    x_ts <- ts(x, frequency = period)
     # you could add an extra parameter for pu to smooth the trend line
     x_cf <- cffilter(x_ts ,pl=2,pu=200,type='symmetric')
     ToRemove <- unique(c(which(x == 0), 
@@ -91,11 +92,11 @@ anomaly_detection = function(x, max_anoms=0.49, alpha=0.01, decomp = "cffilter",
     data_dec <- data_dec[-ToRemove,]
   
   #### Remove data that are too far from the Mode 
-  if(!is.null(ModeDevFR)){
+  if(!is.null(ModeDeviation)){
     Trend_unique <- unique(trunc(data_dec$Trend))
     ModeTrend <- Trend_unique[which.max(tabulate(match(trunc(data_dec$Trend), Trend_unique)))]
     # here calculate how many standard deviation from the Trend you should remove the values
-    DeviationMode <- sd(data_dec$Trend) * ModeDevFR
+    DeviationMode <- sd(data_dec$Trend) * ModeDeviation 
     ToRemoveMode <- c(which(data_dec$Trend  > (ModeTrend + DeviationMode)), which(data_dec$Trend  < (ModeTrend - DeviationMode)))
     if(length(ToRemoveMode)>0){
       data_dec <- data_dec[-ToRemoveMode,]

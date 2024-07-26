@@ -17,6 +17,6 @@ Imports: ggplot2, flowCore, plyr, changepoint, knitr, reshape2,
 Suggests: testthat, shiny, BiocStyle
 Maintainer: Gianni Monaco <mongianni1@gmail.com>
 VignetteBuilder: knitr
-RoxygenNote: 7.1.2
+RoxygenNote: 7.3.1
 Encoding: UTF-8
 NeedsCompilation: no

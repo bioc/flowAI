@@ -11,9 +11,9 @@ flow_auto_qc(
   timeCh = NULL,
   timestep = NULL,
   second_fractionFR = 0.1,
-  deviationFR = "MAD",
   alphaFR = 0.01,
-  decompFR = TRUE,
+  ModeDevFR = NULL,
+  decompFR = "cffilter",
   ChExcludeFS = c("FSC", "SSC"),
   outlier_binsFS = FALSE,
   pen_valueFS = 500,
@@ -65,19 +65,19 @@ the timestep corresponds to 0.01, however, to shorten the running time of
 the analysis the fraction used by default is 0.1, corresponding to 1/10 of
 a second.}
 
-\item{deviationFR}{The metrics used to calculate the dispersion of a flow
-rate fluctuation. Choose between MAD and IQR. Default is MAD and it is more
-sensitive.}
-
 \item{alphaFR}{The level of statistical significance used to accept anomalies
-detected by the ESD method. The default value is \code{0.01}. Decrease the
-value to make the flow rate check less sensitive.}
+detected by the ESD outlier detection method. The default value is \code{0.01}. 
+Decrease the value to make the flow rate check less sensitive.}
 
-\item{decompFR}{Logical indicating whether the flow rate should be decomposed
-in the trend and cyclical components. Default is \code{TRUE} and the ESD
-outlier detection will be executed on the trend component penalized by the
-magnitude of the cyclical component. If it is \code{FALSE} the ESD outlier
-detection will be executed on the original flow rate.}
+\item{ModeDevFR}{If defined, it will remove parts of the flow rate
+that are a number of standard deviation from the mode of the trend.
+To perform this filter, add the number to multiply to the standard deviation. 
+It is suggested a number between 1 and 2. Default is NULL, hence not performed.}
+
+\item{decompFR}{Default is "cffilter" and it will use the Christiano-Fitzgerald 
+method to calculate the trend and cycle components. Any other value will 
+perform Loess regression to predict the trend line. In this case the cycle 
+component will be the distances from the trend line.}
 
 \item{ChExcludeFS}{Character vector with the names or name patterns of the
 channels that you want to exclude from the signal acquisition check. The

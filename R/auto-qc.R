@@ -36,14 +36,14 @@
 #' @param alphaFR The level of statistical significance used to accept anomalies
 #'   detected by the ESD outlier detection method. The default value is \code{0.01}. 
 #'   Decrease the value to make the flow rate check less sensitive.
-#' @param ModeDeviationFR If defined, it will remove the section of the flow rate
-#'   that is a certain standard deviation from the mode of the flow rate trend.
-#'   Default is NULL. Add a positive value to multiply to the standard deviation. 
-#'   It is suggested a value between 1 and 2.
+#' @param ModeDevFR If defined, it will remove parts of the flow rate
+#'   that are a number of standard deviation from the mode of the trend.
+#'   To perform this filter, add the number to multiply to the standard deviation. 
+#'   It is suggested a number between 1 and 2. Default is NULL, hence not performed. 
 #' @param decompFR Default is "cffilter" and it will use the Christiano-Fitzgerald 
 #'   method to calculate the trend and cycle components. Any other value will 
-#'   perform Loess regression to predict the trend line and the cycle component
-#'   will be the remainder from the trend line.
+#'   perform Loess regression to predict the trend line. In this case the cycle 
+#'   component will be the distances from the trend line.
 #' @param ChExcludeFS Character vector with the names or name patterns of the
 #'   channels that you want to exclude from the signal acquisition check. The
 #'   default option, \code{c("FSC", "SSC")}, excludes the scatter parameters. If
@@ -134,7 +134,7 @@
 #' @export
 flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
      timeCh = NULL, timestep = NULL,second_fractionFR = 0.1, alphaFR = 0.01, 
-     ModeDeviationFR = NULL, decompFR = "cffilter", ChExcludeFS = c("FSC", "SSC"),
+     ModeDevFR = NULL, decompFR = "cffilter", ChExcludeFS = c("FSC", "SSC"),
      outlier_binsFS = FALSE, pen_valueFS = 500, max_cptFS = 3,
      ChExcludeFM = c("FSC", "SSC"), sideFM = "both", neg_valuesFM = 1,
      html_report = "_QC", mini_report = "QCmini", fcs_QC = "_QC", fcs_highQ = FALSE,
@@ -207,7 +207,9 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
   out <- list()
 
   for (i in 1:length(set)) {
-    filename_ext <- flowCore::identifier(set[[i]])
+    filename_ext <- basename(flowCore::keyword(set[[i]])$FILENAME)
+    if(is.null(filename_ext))
+      filename_ext <- flowCore::identifier(set[[i]])
     filename <- sub("^([^.]*).*", "\\1", filename_ext)
 
     if (html_report != FALSE) {
@@ -262,7 +264,7 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
     ### Describe here the arguments for the functions of the flow Rate and Flow Signal
     FR_bin_arg <- list( second_fraction = second_fractionFR, timeCh = timeCh,
                   timestep = timestep)
-    FR_QC_arg <- list( alpha = alphaFR, decomp = decompFR, ModeDeviation = ModeDeviationFR)
+    FR_QC_arg <- list( alpha = alphaFR, decomp = decompFR, ModeDeviation = ModeDevFR)
     FS_bin_arg <- list( binSize = FSbinSize, timeCh = timeCh, timestep = timestep, TimeChCheck = TimeChCheck)
     FS_QC_arg <- list( ChannelExclude = ChExcludeFS, pen_valueFS, max_cptFS, outlier_binsFS )
     FM_QC_arg <- list( ChannelExclude = ChExcludeFM, side= sideFM, neg_values = neg_valuesFM)
