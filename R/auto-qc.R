@@ -91,7 +91,7 @@
 #'   contains the results. The default is \code{"resultsQC"}. If you intend to
 #'   return the results in the working directory use \code{FALSE}.
 #' @param ... additional parameters passed to
-#'   \code{\link{flowCore::read.flowSet()}} to provide flexibility over how the
+#'   \link[flowCore]{read.flowSet} to provide flexibility over how the
 #'   FCS files are read in.
 #' @return A complete quality control is performed on flow cytometry data in FCS
 #'   format. By default the analysis returns:
@@ -110,7 +110,7 @@
 #'   3. a single TXT file reporting the percentage of events removed in each FCS
 #'   file.
 #'
-#' @author Gianni Monaco, Chen Hao
+#' @authors Gianni Monaco, Chen Hao
 #' @examples
 #'
 #' ## a sample dataset as flowSet object
@@ -129,7 +129,7 @@
 #' @importFrom scales pretty_breaks
 #' @importFrom graphics hist legend lines
 #' @importFrom methods as is new
-#' @importFrom stats convolve frequency is.ts mad median na.omit qt runif ts tsp
+#' @importFrom stats convolve frequency is.ts mad median na.omit qt runif ts tsp sd loess predict
 #' @importFrom utils write.table
 #' @export
 flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,

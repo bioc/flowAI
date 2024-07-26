@@ -27,3 +27,6 @@
 
 1.26.0:
 - Added the argument deviationFR to choose between MAD and IQR in the flow rate check.
+
+1.35.2: 
+- Substantial modification of the anomaly detection in the flow rate. Added a parameter to remove parts of the flow rate from the mode. Added the Loess regression as alternative method. Removed the deviationFR parameter. 

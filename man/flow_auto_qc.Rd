@@ -139,7 +139,7 @@ contains the results. The default is \code{"resultsQC"}. If you intend to
 return the results in the working directory use \code{FALSE}.}
 
 \item{...}{additional parameters passed to
-\code{\link{flowCore::read.flowSet()}} to provide flexibility over how the
+\link[flowCore]{read.flowSet} to provide flexibility over how the
 FCS files are read in.}
 }
 \value{
