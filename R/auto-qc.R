@@ -262,7 +262,7 @@ flow_auto_qc <- function(fcsfiles, remove_from = "all", output = 1,
     ### Describe here the arguments for the functions of the flow Rate and Flow Signal
     FR_bin_arg <- list( second_fraction = second_fractionFR, timeCh = timeCh,
                   timestep = timestep)
-    FR_QC_arg <- list( alpha = alphaFR, decomp = decompFR, ModeDevFR = ModeDeviationFR)
+    FR_QC_arg <- list( alpha = alphaFR, decomp = decompFR, ModeDeviation = ModeDeviationFR)
     FS_bin_arg <- list( binSize = FSbinSize, timeCh = timeCh, timestep = timestep, TimeChCheck = TimeChCheck)
     FS_QC_arg <- list( ChannelExclude = ChExcludeFS, pen_valueFS, max_cptFS, outlier_binsFS )
     FM_QC_arg <- list( ChannelExclude = ChExcludeFM, side= sideFM, neg_values = neg_valuesFM)

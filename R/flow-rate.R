@@ -38,7 +38,7 @@ flow_rate_bin <- function(x, second_fraction = 0.1, timeCh = timeCh,
 
 # Detection of anomalies in the flow rate using the algorithm
 # implemented in the package AnomalyDetection.
-flow_rate_check <- function(x, FlowRateData, alpha = alpha, use_decomp = use_decomp, deviation = deviation) {
+flow_rate_check <- function(x, FlowRateData, alpha = alpha, decomp = decomp, ModeDeviation = ModeDeviation) {
 
   fr_frequences <- FlowRateData$frequencies
   fr_cellBinID <- FlowRateData$cellBinID
@@ -48,7 +48,7 @@ flow_rate_check <- function(x, FlowRateData, alpha = alpha, use_decomp = use_dec
   if (length(unique(fr_frequences[, 2])) == 1) {
     fr_autoqc <- NULL
   } else {
-    fr_autoqc <- anomaly_detection(fr_frequences[, "tbCounts"], alpha = alpha, use_decomp = use_decomp, deviation = deviation)
+    fr_autoqc <- anomaly_detection(fr_frequences[, "tbCounts"], alpha = alpha, decomp = decomp, ModeDeviation = ModeDeviation)
   }
 
   if (is.null(fr_autoqc) || is.null(fr_autoqc$anoms)) {
