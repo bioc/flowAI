@@ -9,8 +9,6 @@
 #  where the column consists of the observations.
 # @param max_anoms Maximum number of anomalies that C-H-ESD will
 # detect as a percentage of the data. The value can be from 0 to 1.
-# @param direction Directionality of the anomalies to be detected.
-# Options are: \code{'pos' | 'neg' | 'both'}.
 # @param alpha The level of statistical significance with which
 # to accept or reject anomalies.
 # @param use_decomp If set to \code{'FALSE'} it gives the possibility 
@@ -35,122 +33,128 @@
 # @export
 
 
-anomaly_detection = function(x, max_anoms=0.49, direction='both', alpha=0.01, use_decomp = TRUE, period=1, verbose = FALSE, deviation = "MAD"){
-      
-  # idNOzero <- which(x != 0)
-  # x <- x[idNOzero]
-    
-    # Check for supported inputs types
-    if(is.null(period)){
-        stop("Period must be set to the number of data points in a single period")
-    }
-    if(is.vector(x) && is.numeric(x)) {
-        x <- ts(x, frequency = period)
-    } else if(is.ts(x)) {
-    } else {
-        stop("data must be a time series object or a vector that holds numeric values.")
-    }
-    
-    # Handle NAs
-    if (length(rle(is.na(c(NA,x,NA)))$values)>3){
-        stop("Data contains non-leading NAs. We suggest replacing NAs with interpolated values (see na.approx in Zoo package).")
-    } else {
-        x <- na.omit(x)
-    }
-    
-    # Sanity check all input parameterss
-    if(max_anoms > .49){
-        stop(paste("max_anoms must be less than 50% of the data points (max_anoms =", round(max_anoms*length(x), 0), " data_points =", length(x),")."))
-    }
-    if(!direction %in% c('pos', 'neg', 'both')){
-        stop("direction options are: pos | neg | both.")
-    }
-    if(!(0.01 <= alpha & alpha <= 0.1)){
-        print("Warning: alpha is the statistical significance level, and is usually between 0.01 and 0.1")
-    }
-
-    ############## -- Main analysis: Perform C-H-ESD -- #################
-    # -- Step 1: Decompose data. This will return two more components: trend and cycle   
-  if(use_decomp){
-    x_cf <- cffilter(x)
-    med_t <- trunc(median(x_cf$trend))
-    #med_t <- trunc(median(x))
-    sign_n <- sign(x_cf$trend - med_t)
-    sign_n[which(sign_n == 0)] <-1
-    # add the absolute values of the cycle component to the absolute values of the centered trend component. The signs are then added again 
-    x_2 <- as.vector(trunc(abs(x - med_t) + abs(x_cf$cycle)) * sign_n)
-    trend <- x_cf$trend
-  } else {
-    x_2 <- as.vector(x - median(x))
-    trend <- x
+anomaly_detection = function(x, max_anoms=0.49, alpha=0.01, decomp = "cffilter", period=2, verbose = FALSE, ModeDevFR = NULL){
+  
+  # Check for supported inputs types
+  if(is.null(period)){
+    stop("Period must be set to the number of data points in a single period")
   }
-    
-    anomaly_direction = switch(direction,
-        "pos" = data.frame(one_tail=TRUE, upper_tail=TRUE), # upper-tail only (positive going anomalies)
-        "neg" = data.frame(one_tail=TRUE, upper_tail=FALSE), # lower-tail only (negative going anomalies)
-        "both" = data.frame(one_tail=FALSE, upper_tail=TRUE)) # Both tails. Tail direction is not actually used.
-    
-
-    n <- length(x_2)
-    data_det <- data.frame(index = 1:length(x), values = x_2, or_values = trend)
-    # Maximum number of outliers that C-H-ESD can detect (e.g. 49% of data)
-    max_outliers <- trunc(n*max_anoms)
-    func_ma <- match.fun(median)
-    if(deviation == "MAD"){
-      func_sigma <- match.fun(mad)
-    }else if(deviation == "IQR"){
-      func_sigma <- match.fun(IQR)  # IQR makes the check less sensitive
-    }else{
-      stop("Please set the parameter deviationFR to either MAD or IQR")
+  if(is.vector(x) && is.numeric(x)) {
+    x <- ts(x, frequency = period)
+  } else if(is.ts(x)) {
+  } else {
+    stop("data must be a time series object or a vector that holds numeric values.")
+  }
+  
+  # Handle NAs
+  if (length(rle(is.na(c(NA,x,NA)))$values)>3){
+    stop("Data contains non-leading NAs. We suggest replacing NAs with interpolated values (see na.approx in Zoo package).")
+  } else {
+    x <- na.omit(x)
+  }
+  
+  # Sanity check all input parameterss
+  if(max_anoms > .49){
+    stop(paste("max_anoms must be less than 50% of the data points (max_anoms =", round(max_anoms*length(x), 0), " data_points =", length(x),")."))
+  }
+  
+  if(!(0.01 <= alpha & alpha <= 0.1)){
+    print("Warning: alpha is the statistical significance level, and is usually between 0.01 and 0.1")
+  }
+  
+  ############## -- Main analysis: Perform C-H-ESD -- #################
+  # -- Step 1: Decompose data. This will return two more components: trend and cycle   
+  if(decomp == "cffilter"){
+    # Christiano-Fitzgerald filter
+    # you could add an extra parameter for pu to smooth the trend line
+    x_cf <- cffilter(x_ts ,pl=2,pu=200,type='symmetric')
+    ToRemove <- unique(c(which(x == 0), 
+                         which(is.na(x_cf$trend)),
+                         which(is.na(x_cf$cycle))))
+    # start creating the object to retrieve anomalies
+    data_dec <- data.frame(index = 1:length(x), 
+                           Trend = as.vector(x_cf$trend),
+                           Cycle = as.vector(x_cf$cycle))
+  } else { 
+    # run Loess regression to retrieve Trend line
+    df<- data.frame(x = 1:length(x), y =x)
+    loess50<-loess(y ~ x, df, span=0.55)
+    smooth50 <- predict(loess50) 
+    # plot(df$x, df$y, pch=19, main='Loess Regression Models')
+    # lines(smooth50, x=df$x, col='red')
+    ToRemove <- which(x == 0)
+    data_dec <- data.frame(index = 1:length(x), 
+                           Trend = smooth50,
+                           Cycle = (smooth50 - x))
+  }
+  if(length(ToRemove)>0)
+    data_dec <- data_dec[-ToRemove,]
+  
+  #### Remove data that are too far from the Mode 
+  if(!is.null(ModeDevFR)){
+    Trend_unique <- unique(trunc(data_dec$Trend))
+    ModeTrend <- Trend_unique[which.max(tabulate(match(trunc(data_dec$Trend), Trend_unique)))]
+    # here calculate how many standard deviation from the Trend you should remove the values
+    DeviationMode <- sd(data_dec$Trend) * ModeDevFR
+    ToRemoveMode <- c(which(data_dec$Trend  > (ModeTrend + DeviationMode)), which(data_dec$Trend  < (ModeTrend - DeviationMode)))
+    if(length(ToRemoveMode)>0){
+      data_dec <- data_dec[-ToRemoveMode,]
+      ToRemove <- unique(c(ToRemove,ToRemoveMode))
     }
-    R_idx <- 1L:max_outliers
-    num_anoms <- 0L
-    one_tail <- anomaly_direction$one_tail
-    upper_tail <- anomaly_direction$upper_tail
-    # Compute test statistic until r=max_outliers values have been
-    # removed from the sample.
-    for (i in 1L:max_outliers){
-        if(verbose) message(paste(i,"/", max_outliers,"completed"))
-        
-        # Compute statistics
-        ares <- data_det$values - func_ma(data_det$values)
-        if(one_tail && !upper_tail) ares <- -ares  # to detect minimum
-        data_sigma <- func_sigma(ares)  # do not use absolute values when both
-        # tbefore it was calculated on the trend or original values. I changed it afterwards
-        if(data_sigma == 0) 
-            break
-        
-        ares <- ares/data_sigma
-        if(!one_tail) ares <- abs(ares)
-        R <- max(ares)
-        
-        temp_max_idx <- which(ares == R)[1L]
-        
-        R_idx[i] <- data_det[[1L]][temp_max_idx]
-        
-        data_det <- data_det[-which(data_det[[1L]] == R_idx[i]), ]
-        
-        ## Compute critical value.
-        if(one_tail){
-            p <- 1 - alpha/(n-i+1)
-        } else {
-            p <- 1 - alpha/(2*(n-i+1))
-        }
-        
-        t <- qt(p,(n-i-1L))
-        lam <- t*(n-i) / sqrt((n-i-1+t**2)*(n-i+1))
-        
-        if(R > lam)
-            num_anoms <- i
-    }
+  }
+  
+  sign_n <- sign( data_dec$Cycle )
+  ## to make it compatible to changes in the trend component, I subtract the trend from the original values
+  data_dec$Values_Minus_Trend <- (abs( x[data_dec$index] - data_dec$Trend) + abs(data_dec$Cycle)) * sign_n 
+  
+  
+  n <- nrow(data_dec)
+  max_outliers <- trunc(n*max_anoms)
+  func_mid <- match.fun(median)
+  func_dev <- match.fun(mad)
+  R_idx <- 1L:max_outliers
+  num_anoms <- 0L
+  
+  
+  # Compute test statistic until r=max_outliers values have been 
+  # removed from the sample.
+  for (i in 1L:max_outliers){
+    if(verbose) message(paste(i,"/", max_outliers,"completed"))
     
-    if(num_anoms > 0) {
-        R_idx <- R_idx[1L:num_anoms]
-        all_data <- data.frame(index = 1:length(x), anoms = x)
-        anoms_data <- subset(all_data, (all_data[[1]] %in% R_idx))
-    } else {
-        anoms_data <- NULL
-    }
-    return (list(anoms = anoms_data, num_obs = n))
+    # Compute statistics
+    CenteredValues = data_dec$Values_Minus_Trend - func_mid(data_dec$Values_Minus_Trend)
+    
+    Deviation <- func_dev( data_dec$Cycle )
+    if(Deviation == 0) 
+      break
+    
+    Scaled <- abs(CenteredValues/Deviation)
+    
+    R <- max(Scaled)
+    
+    ## Compute critical value.
+    p <- 1 - alpha/(2*(n-i+1))
+    
+    # Calculate lambda
+    t <- qt(p,(n-i-1L))
+    lam <- t*(n-i) / sqrt((n-i-1+t**2)*(n-i+1))
+    
+    temp_max_idx <- which(Scaled == R)[1L]
+    R_idx[i] <- data_dec[[1L]][temp_max_idx]
+    data_dec <- data_dec[-which(data_dec[[1L]] == R_idx[i]), ]
+    
+    if(R > lam)
+      num_anoms <- i
+  }
+  
+  if(num_anoms > 0) {
+    R_idx <- R_idx[1L:num_anoms]
+    all_data <- data.frame(index = 1:length(x), anoms = x)
+    TotalAnomaliesIndexes <- c(R_idx, ToRemove)
+    anoms_data <- subset(all_data, (all_data[[1]] %in% TotalAnomaliesIndexes))
+  } else {
+    anoms_data <- NULL
+  }
+  return (list(anoms = anoms_data, num_obs = length(x)))
 }
 
