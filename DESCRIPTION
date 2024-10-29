@@ -1,7 +1,7 @@
 Package: flowAI
 Type: Package
 Title: Automatic and interactive quality control for flow cytometry data
-Version: 1.35.2
+Version: 1.36.0
 Date: 2024-07-26
 Authors@R: c(	person("Gianni", "Monaco", email="mongianni1@gmail.com", role="cre"), 
 		person("Chen", "Hao", role="ctb"))
